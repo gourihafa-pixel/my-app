@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="Calculator" />
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+
+  <title>iPhone Calculator PWA</title>
+
+  <style>
+    :root {
+      --bg: #000000;
+      --key-dark: #333333;
+      --key-dark-active: #737373;
+      --key-light: #a5a5a5;
+      --key-light-active: #d9d9d9;
+      --key-orange: #ff9f0a;
+      --key-orange-active: #ffffff;
+      --text-dark: #000000;
+      --text-light: #ffffff;
+      --history: #8e8e93;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+        "Helvetica Neue", Arial, sans-serif;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .phone {
+      width: 100%;
+      height: 100dvh;
+      background: var(--bg);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding:
+        max(12px, env(safe-area-inset-top))
+        14px
+        max(20px, env(safe-area-inset-bottom))
+        14px;
+    }
+
+    @media (min-width: 500px) {
+      body {
+        background: linear-gradient(180deg, #111, #000);
+      }
+
+      .phone {
+        max-width: 390px;
+        height: 844px;
+        border-radius: 42px;
+        overflow: hidden;
+        border: 10px solid #1a1a1a;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    .top-area {
+      padding-top: 2px;
+    }
+
+    .dynamic-island {
+      width: 126px;
+      height: 34px;
+      background: #090909;
+      border-radius: 999px;
+      margin: 0 auto;
+    }
+
+    .screen {
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 10px 6px 8px;
+      min-height: 220px;
+    }
+
+    .screen-inner {
+      width: 100%;
+      text-align: right;
+    }
+
+    .history {
+      min-height: 26px;
+      color: var(--history);
+      font-size: 20px;
+      margin-bottom: 10px;
+      padding-right: 10px;
+      direction: ltr;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .display {
+      color: white;
+      font-weight: 300;
+      line-height: 0.95;
+      letter-spacing: -2px;
+      padding-right: 8px;
+      word-break: break-all;
+      font-size: clamp(44px, 15vw, 92px);
+    }
+
+    .keyboard {
+      padding-bottom: 4px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 50%;
+      height: min(19vw, 82px);
+      min-height: 64px;
+      font-size: clamp(28px, 6vw, 34px);
+      cursor: pointer;
+      transition: transform 0.08s ease, background 0.15s ease, color 0.15s ease, filter 0.15s ease;
+      outline: none;
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    .btn-dark {
+      background: var(--key-dark);
+      color: var(--text-light);
+    }
+
+    .btn-dark.pressed {
+      background: var(--key-dark-active);
+    }
+
+    .btn-light {
+      background: var(--key-light);
+      color: var(--text-dark);
+      font-weight: 500;
+    }
+
+    .btn-light.pressed {
+      background: var(--key-light-active);
+    }
+
+    .btn-operator {
+      background: var(--key-orange);
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .btn-operator.pressed {
+      filter: brightness(1.08);
+    }
+
+    .btn-operator.active {
+      background: var(--key-orange-active);
+      color: var(--key-orange);
+    }
+
+    .zero {
+      grid-column: span 2;
+      border-radius: 999px;
+      text-align: left;
+      padding-left: 30px;
+    }
+
+    .home-indicator {
+      width: 138px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      margin: 14px auto 0;
+    }
+
+    .install-banner {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      background: rgba(28, 28, 30, 0.96);
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      display: none;
+      gap: 10px;
+      align-items: center;
+      z-index: 9999;
+      width: min(92vw, 360px);
+    }
+
+    .install-banner button {
+      height: auto;
+      min-height: auto;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: #0a84ff;
+      color: white;
+      flex: 0 0 auto;
+    }
+
+    .install-banner .close-btn {
+      background: #444;
+    }
+
+    .install-text {
+      font-size: 14px;
+      line-height: 1.4;
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="top-area">
+      <div class="dynamic-island"></div>
+    </div>
+
+    <div class="screen">
+      <div class="screen-inner">
+        <div class="history" id="history"></div>
+        <div class="display" id="display">0</div>
+      </div>
+    </div>
+
+    <div class="keyboard">
+      <div class="buttons">
+        <button class="btn-light" id="clearBtn">AC</button>
+        <button class="btn-light">±</button>
+        <button class="btn-light">%</button>
+        <button class="btn-operator" data-op="/">÷</button>
+
+        <button class="btn-dark">7</button>
+        <button class="btn-dark">8</button>
+        <button class="btn-dark">9</button>
+        <button class="btn-operator" data-op="*">×</button>
+
+        <button class="btn-dark">4</button>
+        <button class="btn-dark">5</button>
+        <button class="btn-dark">6</button>
+        <button class="btn-operator" data-op="-">−</button>
+
+        <button class="btn-dark">1</button>
+        <button class="btn-dark">2</button>
+        <button class="btn-dark">3</button>
+        <button class="btn-operator" data-op="+">+</button>
+
+        <button class="btn-dark zero">0</button>
+        <button class="btn-dark">.</button>
+        <button class="btn-operator" id="equalsBtn">=</button>
+      </div>
+
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+  <div class="install-banner" id="installBanner">
+    <div class="install-text">ثبّت التطبيق على جهازك للوصول السريع بدون متصفح.</div>
+    <button id="installBtn">تثبيت</button>
+    <button class="close-btn" id="closeInstall">إغلاق</button>
+  </div>
+
+  <script>
+    const displayEl = document.getElementById("display");
+    const historyEl = document.getElementById("history");
+    const clearBtn = document.getElementById("clearBtn");
+    const allButtons = document.querySelectorAll("button");
+    const operatorButtons = document.querySelectorAll("[data-op]");
+
+    let current = "0";
+    let previous = null;
+    let operator = null;
+    let waitingForOperand = false;
+    let lastOperand = null;
+    let lastOperatorStored = null;
+    let justCalculated = false;
+
+    function formatNumber(value) {
+      const num = Number(value);
+      if (!isFinite(num)) return "Error";
+
+      const abs = Math.abs(num);
+      if ((abs > 0 && abs < 0.0000001) || abs >= 1e12) {
+        return num.toExponential(6).replace("+", "");
+      }
+
+      return num.toLocaleString("en-US", {
+        maximumFractionDigits: 8
+      });
+    }
+
+    function symbol(op) {
+      if (op === "+") return "+";
+      if (op === "-") return "−";
+      if (op === "*") return "×";
+      if (op === "/") return "÷";
+      return "";
+    }
+
+    function updateDisplay() {
+      displayEl.textContent = formatNumber(current);
+
+      if (previous !== null && operator) {
+        historyEl.textContent = `${formatNumber(previous)} ${symbol(operator)}`;
+      } else if (!(justCalculated && historyEl.textContent.includes("="))) {
+        historyEl.textContent = "";
+      }
+
+      clearBtn.textContent = current !== "0" || previous !== null ? "C" : "AC";
+
+      operatorButtons.forEach((btn) => {
+        btn.classList.toggle(
+          "active",
+          btn.dataset.op === operator && waitingForOperand
+        );
+      });
+    }
+
+    function inputDigit(digit) {
+      if (justCalculated && previous === null && operator === null && !waitingForOperand) {
+        historyEl.textContent = "";
+      }
+
+      if (waitingForOperand) {
+        current = digit;
+        waitingForOperand = false;
+      } else {
+        current = current === "0" ? digit : current + digit;
+      }
+
+      justCalculated = false;
+      updateDisplay();
+    }
+
+    function inputDecimal() {
+      if (justCalculated && previous === null && operator === null) {
+        historyEl.textContent = "";
+      }
+
+      if (waitingForOperand) {
+        current = "0.";
+        waitingForOperand = false;
+        justCalculated = false;
+        updateDisplay();
+        return;
+      }
+
+      if (!current.includes(".")) {
+        current += ".";
+        justCalculated = false;
+        updateDisplay();
+      }
+    }
+
+    function clearCalculator() {
+      if (current !== "0" && !waitingForOperand) {
+        current = "0";
+      } else {
+        current = "0";
+        previous = null;
+        operator = null;
+        waitingForOperand = false;
+        lastOperand = null;
+        lastOperatorStored = null;
+        historyEl.textContent = "";
+        justCalculated = false;
+      }
+      updateDisplay();
+    }
+
+    function toggleSign() {
+      if (current === "0") return;
+      current = String(Number(current) * -1);
+      updateDisplay();
+    }
+
+    function percent() {
+      current = String(Number(current) / 100);
+      updateDisplay();
+    }
+
+    function compute(a, b, op) {
+      if (op === "+") return a + b;
+      if (op === "-") return a - b;
+      if (op === "*") return a * b;
+      if (op === "/") return b === 0 ? NaN : a / b;
+      return b;
+    }
+
+    function chooseOperator(nextOp) {
+      const input = Number(current);
+
+      if (operator && !waitingForOperand) {
+        const result = compute(previous, input, operator);
+        historyEl.textContent = `${formatNumber(previous)} ${symbol(operator)} ${formatNumber(input)}`;
+
+        if (!isFinite(result)) {
+          displayEl.textContent = "Error";
+          current = "0";
+          previous = null;
+          operator = null;
+          waitingForOperand = false;
+          lastOperand = null;
+          lastOperatorStored = null;
+          return;
+        }
+
+        previous = result;
+        current = String(result);
+      } else if (previous === null) {
+        previous = input;
+      }
+
+      operator = nextOp;
+      waitingForOperand = true;
+      justCalculated = false;
+      updateDisplay();
+    }
+
+    function calculate() {
+      if (operator === null && lastOperand !== null && lastOperatorStored !== null) {
+        const result = compute(Number(current), Number(lastOperand), lastOperatorStored);
+        historyEl.textContent = `${formatNumber(current)} ${symbol(lastOperatorStored)} ${formatNumber(lastOperand)} =`;
+
+        if (!isFinite(result)) {
+          displayEl.textContent = "Error";
+          current = "0";
+          return;
+        }
+
+        current = String(result);
+        displayEl.textContent = formatNumber(current);
+        justCalculated = true;
+        return;
+      }
+
+      if (operator === null || previous === null) return;
+
+      const input = Number(current);
+      const result = compute(previous, input, operator);
+      historyEl.textContent = `${formatNumber(previous)} ${symbol(operator)} ${formatNumber(input)} =`;
+
+      lastOperand = input;
+      lastOperatorStored = operator;
+
+      if (!isFinite(result)) {
+        displayEl.textContent = "Error";
+        current = "0";
+      } else {
+        current = String(result);
+        displayEl.textContent = formatNumber(current);
+      }
+
+      previous = null;
+      operator = null;
+      waitingForOperand = true;
+      justCalculated = true;
+      updateDisplay();
+    }
+
+    function handleButtonPress(e) {
+      const btn = e.currentTarget;
+      const text = btn.textContent.trim();
+
+      if (btn.dataset.op) {
+        chooseOperator(btn.dataset.op);
+        return;
+      }
+
+      if (btn.id === "clearBtn") {
+        clearCalculator();
+        return;
+      }
+
+      if (btn.id === "equalsBtn") {
+        calculate();
+        return;
+      }
+
+      if (text >= "0" && text <= "9") {
+        inputDigit(text);
+        return;
+      }
+
+      if (text === ".") {
+        inputDecimal();
+        return;
+      }
+
+      if (text === "±") {
+        toggleSign();
+        return;
+      }
+
+      if (text === "%") {
+        percent();
+      }
+    }
+
+    allButtons.forEach((btn) => {
+      btn.addEventListener("click", handleButtonPress);
+
+      btn.addEventListener("touchstart", () => btn.classList.add("pressed"), { passive: true });
+      btn.addEventListener("touchend", () => btn.classList.remove("pressed"));
+      btn.addEventListener("touchcancel", () => btn.classList.remove("pressed"));
+      btn.addEventListener("mousedown", () => btn.classList.add("pressed"));
+      btn.addEventListener("mouseup", () => btn.classList.remove("pressed"));
+      btn.addEventListener("mouseleave", () => btn.classList.remove("pressed"));
+    });
+
+    document.addEventListener("keydown", (e) => {
+      const key = e.key;
+
+      if (!isNaN(key)) inputDigit(key);
+      else if (key === ".") inputDecimal();
+      else if (["+", "-", "*", "/"].includes(key)) chooseOperator(key);
+      else if (key === "Enter" || key === "=") {
+        e.preventDefault();
+        calculate();
+      } else if (key === "%") percent();
+      else if (key.toLowerCase() === "c" || key === "Escape") clearCalculator();
+    });
+
+    updateDisplay();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .catch(err => console.log("SW registration failed:", err));
+      });
+    }
+
+    let deferredPrompt = null;
+    const installBanner = document.getElementById("installBanner");
+    const installBtn = document.getElementById("installBtn");
+    const closeInstall = document.getElementById("closeInstall");
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBanner.style.display = "flex";
+    });
+
+    installBtn.addEventListener("click", async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBanner.style.display = "none";
+    });
+
+    closeInstall.addEventListener("click", () => {
+      installBanner.style.display = "none";
+    });
+
+    window.addEventListener("appinstalled", () => {
+      installBanner.style.display = "none";
+      deferredPrompt = null;
+    });
+  </script>
+</body>
+</html>
