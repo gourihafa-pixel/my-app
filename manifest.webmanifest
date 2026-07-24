@@ -3,58 +3,63 @@
   "name": "iPhone Calculator PWA",
   "short_name": "Calculator",
   "description": "آلة حاسبة بشكل قريب من تطبيق الآيفون وتعمل كتطبيق PWA",
-  "start_url": "./index.html",
-  "scope": "./",
+
+  "start_url": "index.html",
+  "scope": "/my-app/",
+
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait",
   "lang": "ar",
   "dir": "rtl",
+
   "categories": [
     "utilities",
     "productivity"
   ],
+
   "icons": [
     {
-      "src": "./icon.svg",
+      "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "./icon-192x192.png",
+      "src": "icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-512x512.png",
+      "src": "icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-maskable-512x512.png",
+      "src": "icon-maskable-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
+
   "screenshots": [
     {
-      "src": "./screenshot-wide-1280x720.png",
+      "src": "screenshot-wide-1280x720.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "iPhone Calculator PWA"
+      "label": "Calculator Landscape"
     },
     {
-      "src": "./screenshot-mobile-750x1334.png",
+      "src": "screenshot-mobile-750x1334.png",
       "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "iPhone Calculator PWA"
+      "label": "Calculator Portrait"
     }
   ]
 }
